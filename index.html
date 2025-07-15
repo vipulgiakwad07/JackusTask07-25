@@ -1,68 +1,61 @@
-<!-- File: employee-directory.ftl -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Employee Directory</title>
-    <link rel="stylesheet" href="styles.css">
     <style>
-        .header-container {
+        .header-container, .controls-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            padding: 1rem;
+        }
+        .header-container {
             background-color: #000;
             color: #fff;
-            padding: 1rem;
-            flex-wrap: wrap;
-        }
-        .header-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        .search-box {
-            width: 250px;
-            margin: 0 1rem;
-        }
-        .search-box input {
-            width: 100%;
-            padding: 0.5rem;
-            font-size: 1rem;
-        }
-        .filter-controls {
-            min-width: 200px;
         }
         .controls-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
             background-color: #f1f1f1;
-            flex-wrap: wrap;
         }
-        .controls-left {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .controls-right {
-            margin-left: auto;
+        .search-box input, #filterFirstName, #filterDepartment, #filterRole {
+            padding: 0.5rem;
+            font-size: 1rem;
+            width: 100%;
         }
         .add-employee-btn {
             background-color: green;
             color: white;
             padding: 0.5rem 1rem;
             border: none;
-            cursor: pointer;
             border-radius: 4px;
+            cursor: pointer;
         }
+        .employee-cards-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 1rem;
+        }
+        .employee-card-sample {
+            border: 1px solid #ccc;
+            padding: 1rem;
+            width: 20%;
+            position: relative;
+        }
+        .employee-card-sample button {
+            position: absolute;
+            bottom: 10px;
+        }
+        .editBtn { left: 10px; }
+        .deleteBtn { right: 10px; }
         #employeeFormModal {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: #fff;
+            background: #fff;
             border: 1px solid #ccc;
             padding: 2rem;
             box-shadow: 0 0 10px rgba(0,0,0,0.25);
@@ -71,48 +64,37 @@
         #employeeFormModal.hidden {
             display: none;
         }
-        #employeeForm label {
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-        #employeeForm input {
-            width: 100%;
-            padding: 0.5rem;
-            margin-top: 0.2rem;
-            margin-bottom: 1rem;
-        }
-        #employeeForm button {
-            margin-right: 1rem;
-        }
-        .employee-cards-row {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            margin: 2rem 1rem;
-        }
-        .employee-card-sample {
-            border: 1px solid #ccc;
-            padding: 1rem;
-            width: 20%;
-            margin: 0.5rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            position: relative;
-        }
-        .employee-card-sample p {
-            margin: 0.5rem 0;
-        }
-        .employee-card-sample .editBtn,
-        .employee-card-sample .deleteBtn {
+        #employeeFormModal .close-btn {
             position: absolute;
-            bottom: 10px;
-            padding: 0.3rem 0.8rem;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
         }
-        .employee-card-sample .editBtn {
-            left: 10px;
+        #filterSidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 100%;
+            background: #fff;
+            border-left: 1px solid #ccc;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+            padding: 1rem;
+            z-index: 1000;
         }
-        .employee-card-sample .deleteBtn {
-            right: 10px;
+        #filterSidebar .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
         }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -120,89 +102,114 @@
         <div class="header-container">
             <div class="header-title">Employee Directory</div>
             <div class="search-box">
-                <input type="text" id="searchBar" placeholder="Search employees...">
+                <input type="text" id="searchBar" placeholder="Search by Name" />
             </div>
-            <div class="filter-controls">
-                <button id="filterToggle">Filters</button>
-            </div>
+            <button id="filterToggle">Filters</button>
         </div>
         <div class="controls-bar">
-            <div class="controls-left">
-                <label>Show:
-                    <select id="itemsPerPage">
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                </label>
-                <div id="pageNumbers"></div>
-            </div>
-            <div class="controls-right">
-                <button class="add-employee-btn" onclick="openEmployeeForm()">Add New Employee</button>
-            </div>
+            <button class="add-employee-btn" onclick="openEmployeeForm()">Add New Employee</button>
         </div>
     </header>
 
     <main>
-        <div id="employeeCards" class="employee-cards-row">
-            <div class="employee-card-sample">
-                <p><strong>Name:</strong> John Doe</p>
-                <p><strong>Email:</strong> john@example.com</p>
-                <p><strong>Department:</strong> HR</p>
-                <p><strong>Role:</strong> Manager</p>
-                <button class="editBtn">Edit</button>
-                <button class="deleteBtn">Delete</button>
-            </div>
-            <div class="employee-card-sample">
-                <p><strong>Name:</strong> Jane Smith</p>
-                <p><strong>Email:</strong> jane@example.com</p>
-                <p><strong>Department:</strong> IT</p>
-                <p><strong>Role:</strong> Developer</p>
-                <button class="editBtn">Edit</button>
-                <button class="deleteBtn">Delete</button>
-            </div>
-            <div class="employee-card-sample">
-                <p><strong>Name:</strong> Alice Brown</p>
-                <p><strong>Email:</strong> alice@example.com</p>
-                <p><strong>Department:</strong> Finance</p>
-                <p><strong>Role:</strong> Analyst</p>
-                <button class="editBtn">Edit</button>
-                <button class="deleteBtn">Delete</button>
-            </div>
-        </div>
+        <div id="employeeCards" class="employee-cards-row"></div>
 
         <div id="employeeFormModal" class="hidden">
+            <button class="close-btn" onclick="closeEmployeeForm()">&times;</button>
             <form id="employeeForm">
                 <h2 id="formTitle">Add/Edit Employee</h2>
-                <input type="hidden" id="employeeId">
-                <label>First Name:<input type="text" id="firstName" required></label>
-                <label>Last Name:<input type="text" id="lastName" required></label>
-                <label>Email:<input type="email" id="email" required></label>
-                <label>Department:<input type="text" id="department" required></label>
-                <label>Role:<input type="text" id="role" required></label>
+                <input type="hidden" id="employeeId" />
+                <label>First Name:<input type="text" id="firstName" required /></label>
+                <label>Last Name:<input type="text" id="lastName" required /></label>
+                <label>Email:<input type="email" id="email" required /></label>
+                <label>Department:<input type="text" id="department" required /></label>
+                <label>Role:<input type="text" id="role" required /></label>
                 <button type="submit">Save</button>
                 <button type="button" id="cancelForm">Cancel</button>
             </form>
         </div>
+
+        <div id="filterSidebar" class="hidden">
+            <button class="close-btn" onclick="document.getElementById('filterSidebar').classList.add('hidden')">&times;</button>
+            <h3>Filter Employees</h3>
+            <label>First Name:
+                <input type="text" id="filterFirstName" />
+            </label><br><br>
+            <label>Department:
+                <input type="text" id="filterDepartment" />
+            </label><br><br>
+            <label>Role:
+                <input type="text" id="filterRole" />
+            </label><br><br>
+            <button onclick="applyFilters()">Apply</button>
+            <button onclick="clearFilters()">Clear</button>
+        </div>
     </main>
 
     <script>
+        let editingCard = null;
+        let employees = [
+            { id: 1, firstName: "John", lastName: "Doe", email: "john@example.com", department: "HR", role: "Manager" },
+            { id: 2, firstName: "Jane", lastName: "Smith", email: "jane@example.com", department: "IT", role: "Developer" },
+            { id: 3, firstName: "Alice", lastName: "Brown", email: "alice@example.com", department: "Finance", role: "Analyst" }
+        ];
+
+        function renderEmployees(list) {
+            const container = document.getElementById('employeeCards');
+            container.innerHTML = '';
+            list.forEach(emp => {
+                const card = document.createElement('div');
+                card.className = 'employee-card-sample';
+                card.dataset.id = emp.id;
+                card.innerHTML = `
+                    <p><strong>Name:</strong> ${emp.firstName} ${emp.lastName}</p>
+                    <p><strong>Email:</strong> ${emp.email}</p>
+                    <p><strong>Department:</strong> ${emp.department}</p>
+                    <p><strong>Role:</strong> ${emp.role}</p>
+                    <button class="editBtn">Edit</button>
+                    <button class="deleteBtn">Delete</button>
+                `;
+                card.querySelector('.editBtn').onclick = () => editEmployee(emp.id);
+                card.querySelector('.deleteBtn').onclick = () => deleteEmployee(emp.id);
+                container.appendChild(card);
+            });
+        }
+
         function openEmployeeForm() {
             document.getElementById('employeeForm').reset();
-            document.getElementById('formTitle').textContent = 'Add New Employee';
             document.getElementById('employeeId').value = '';
+            document.getElementById('formTitle').textContent = 'Add Employee';
+            editingCard = null;
             document.getElementById('employeeFormModal').classList.remove('hidden');
         }
 
-        document.getElementById('cancelForm').addEventListener('click', () => {
+        function closeEmployeeForm() {
             document.getElementById('employeeFormModal').classList.add('hidden');
-        });
+        }
+
+        function editEmployee(id) {
+            const emp = employees.find(e => e.id == id);
+            if (!emp) return;
+            document.getElementById('employeeId').value = emp.id;
+            document.getElementById('firstName').value = emp.firstName;
+            document.getElementById('lastName').value = emp.lastName;
+            document.getElementById('email').value = emp.email;
+            document.getElementById('department').value = emp.department;
+            document.getElementById('role').value = emp.role;
+            document.getElementById('formTitle').textContent = 'Edit Employee';
+            document.getElementById('employeeFormModal').classList.remove('hidden');
+        }
+
+        function deleteEmployee(id) {
+            employees = employees.filter(e => e.id != id);
+            applyFilters();
+        }
 
         document.getElementById('employeeForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            const employee = {
-                id: Date.now(),
+            const id = document.getElementById('employeeId').value;
+            const newEmp = {
+                id: id ? parseInt(id) : Date.now(),
                 firstName: document.getElementById('firstName').value.trim(),
                 lastName: document.getElementById('lastName').value.trim(),
                 email: document.getElementById('email').value.trim(),
@@ -210,25 +217,51 @@
                 role: document.getElementById('role').value.trim()
             };
 
-            if (!employee.firstName || !employee.lastName || !employee.email || !employee.department || !employee.role) {
-                alert('Please fill in all fields correctly.');
-                return;
+            if (id) {
+                employees = employees.map(emp => emp.id == id ? newEmp : emp);
+            } else {
+                employees.push(newEmp);
             }
-
-            const card = document.createElement('div');
-            card.className = 'employee-card-sample';
-            card.innerHTML = `
-                <p><strong>Name:</strong> ${employee.firstName} ${employee.lastName}</p>
-                <p><strong>Email:</strong> ${employee.email}</p>
-                <p><strong>Department:</strong> ${employee.department}</p>
-                <p><strong>Role:</strong> ${employee.role}</p>
-                <button class="editBtn">Edit</button>
-                <button class="deleteBtn">Delete</button>
-            `;
-            document.getElementById('employeeCards').appendChild(card);
-
             document.getElementById('employeeFormModal').classList.add('hidden');
+            applyFilters();
         });
+
+        document.getElementById('cancelForm').onclick = () => {
+            document.getElementById('employeeFormModal').classList.add('hidden');
+        };
+
+        document.getElementById('filterToggle').onclick = () => {
+            document.getElementById('filterSidebar').classList.toggle('hidden');
+        };
+
+        function applyFilters() {
+            const fn = document.getElementById('filterFirstName').value.toLowerCase();
+            const dept = document.getElementById('filterDepartment').value.toLowerCase();
+            const role = document.getElementById('filterRole').value.toLowerCase();
+            const result = employees.filter(emp =>
+                emp.firstName.toLowerCase().includes(fn) &&
+                emp.department.toLowerCase().includes(dept) &&
+                emp.role.toLowerCase().includes(role)
+            );
+            renderEmployees(result);
+        }
+
+        function clearFilters() {
+            document.getElementById('filterFirstName').value = '';
+            document.getElementById('filterDepartment').value = '';
+            document.getElementById('filterRole').value = '';
+            applyFilters();
+        }
+
+        document.getElementById('searchBar').addEventListener('input', (e) => {
+            const search = e.target.value.toLowerCase();
+            const filtered = employees.filter(emp =>
+                (emp.firstName + ' ' + emp.lastName).toLowerCase().includes(search)
+            );
+            renderEmployees(filtered);
+        });
+
+        renderEmployees(employees);
     </script>
 </body>
 </html>
